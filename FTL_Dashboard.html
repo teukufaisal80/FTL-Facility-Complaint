@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FTL Gym — Complaint Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   APPLE-INSPIRED DESIGN SYSTEM
+   Light, airy, generous whitespace, 
+   restrained color, precision typography
+   ═══════════════════════════════════════════ */
+
+@font-face {
+  font-family: 'System';
+  src: local('-apple-system'), local('BlinkMacSystemFont'), local('Segoe UI'), local('Helvetica Neue');
+}
+
+:root {
+  --bg: #FAFAFA;
+  --white: #FFFFFF;
+  --surface: #FFFFFF;
+  --surface-hover: #F5F5F7;
+  --border: rgba(0,0,0,.06);
+  --border-strong: rgba(0,0,0,.1);
+  --text: #1D1D1F;
+  --text2: #6E6E73;
+  --text3: #AEAEB2;
+  --accent: #0071E3;
+  --accent-light: #E8F2FE;
+  --red: #FF3B30;
+  --red-light: #FFF0EF;
+  --orange: #FF9500;
+  --orange-light: #FFF8ED;
+  --green: #34C759;
+  --green-light: #EEFBF2;
+  --purple: #AF52DE;
+  --purple-light: #F8F0FE;
+  --teal: #5AC8FA;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-xs: 6px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.03);
+  --shadow: 0 4px 16px rgba(0,0,0,.06), 0 1px 4px rgba(0,0,0,.04);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,.08), 0 4px 12px rgba(0,0,0,.04);
+  --font: 'System', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+  --font-serif: 'Newsreader', Georgia, serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:var(--font); font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
+::selection { background:var(--accent); color:white; }
+::-webkit-scrollbar { width:8px; height:8px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:rgba(0,0,0,.12); border-radius:4px; }
+::-webkit-scrollbar-thumb:hover { background:rgba(0,0,0,.2); }
+
+.app { max-width:1280px; margin:0 auto; padding:32px 40px 80px; }
+@media(max-width:768px) { .app { padding:20px 16px 60px; } }
+
+/* ── Header ── */
+.header { margin-bottom:40px; }
+.header-top { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; margin-bottom:6px; }
+.logo { font-size:13px; font-weight:600; letter-spacing:-.01em; color:var(--text2); }
+.logo span { color:var(--text); }
+.header-actions { display:flex; gap:8px; align-items:center; }
+.sync-pill { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text3); background:var(--white); border:1px solid var(--border); border-radius:20px; padding:5px 12px; }
+.sync-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:blink 2.5s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.refresh-btn { background:var(--white); border:1px solid var(--border); border-radius:20px; padding:5px 14px; font-size:11px; font-weight:500; color:var(--text2); cursor:pointer; font-family:inherit; transition:all .2s; }
+.refresh-btn:hover { background:var(--surface-hover); color:var(--text); border-color:var(--border-strong); }
+.title { font-family:var(--font); font-size:34px; font-weight:700; letter-spacing:-.025em; line-height:1.15; margin-bottom:4px; }
+.subtitle { font-size:15px; color:var(--text2); font-weight:400; }
+
+/* ── Slicer ── */
+.slicer { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:32px; padding:4px; background:var(--white); border:1px solid var(--border); border-radius:12px; width:fit-content; max-width:100%; }
+.slicer-btn { background:transparent; border:none; border-radius:8px; padding:7px 14px; font-size:13px; font-weight:500; color:var(--text2); cursor:pointer; font-family:inherit; transition:all .25s; white-space:nowrap; position:relative; }
+.slicer-btn:hover { color:var(--text); background:var(--surface-hover); }
+.slicer-btn.active { background:var(--text); color:white; }
+.slicer-btn .ct { font-size:11px; opacity:.6; margin-left:3px; }
+
+/* ── KPI Strip ── */
+.kpi-strip { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:1px; background:var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:32px; box-shadow:var(--shadow-sm); }
+.kpi { background:var(--white); padding:22px 20px; }
+.kpi-label { font-size:11px; font-weight:500; color:var(--text3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
+.kpi-val { font-size:32px; font-weight:700; letter-spacing:-.03em; line-height:1; margin-bottom:2px; }
+.kpi-note { font-size:12px; color:var(--text2); }
+
+/* ── Cards ── */
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:24px; }
+@media(max-width:860px) { .grid-2 { grid-template-columns:1fr; } }
+.card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow-sm); }
+.card-head { padding:18px 22px 14px; display:flex; justify-content:space-between; align-items:center; }
+.card-t { font-size:15px; font-weight:600; letter-spacing:-.01em; }
+.card-sub { font-size:11px; font-weight:500; color:var(--text3); background:var(--surface-hover); padding:3px 8px; border-radius:var(--radius-xs); }
+.card-body { padding:6px 22px 22px; }
+
+/* ── Horizontal bar ── */
+.hbar { display:flex; flex-direction:column; gap:8px; }
+.hbar-row { display:grid; grid-template-columns:140px 1fr 36px; align-items:center; gap:10px; cursor:pointer; padding:3px 0; border-radius:6px; transition:background .15s; }
+.hbar-row:hover { background:var(--surface-hover); margin:0 -6px; padding:3px 6px; }
+.hbar-name { font-size:12px; font-weight:500; color:var(--text2); text-align:right; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.hbar-track { height:22px; background:var(--surface-hover); border-radius:6px; overflow:hidden; }
+.hbar-fill { height:100%; border-radius:6px; transition:width .7s cubic-bezier(.23,1,.32,1); }
+.hbar-ct { font-size:12px; font-weight:600; color:var(--text); text-align:right; }
+
+/* ── Matrix ── */
+.matrix { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.matrix-q { border-radius:var(--radius-sm); padding:16px; border:1px solid var(--border); }
+.matrix-q h5 { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.8px; margin-bottom:10px; }
+.mq-items { display:flex; flex-direction:column; gap:4px; }
+.mq-item { font-size:12px; color:var(--text2); display:flex; justify-content:space-between; align-items:center; padding:3px 0; }
+.mq-item span:last-child { font-weight:600; color:var(--text); font-size:11px; }
+.mq-dot { width:5px; height:5px; border-radius:50%; display:inline-block; margin-right:6px; }
+.mq-empty { font-size:11px; color:var(--text3); padding:6px 0; }
+
+/* ── Detail drawer ── */
+.drawer { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:24px; overflow:hidden; box-shadow:var(--shadow); display:none; }
+.drawer.open { display:block; animation:slideIn .3s ease; }
+@keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+.drawer-head { padding:16px 22px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.drawer-close { width:26px; height:26px; border-radius:50%; border:1px solid var(--border); background:var(--white); color:var(--text3); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:13px; transition:all .2s; }
+.drawer-close:hover { background:var(--red-light); color:var(--red); border-color:transparent; }
+.drawer-body { padding:16px 22px; max-height:300px; overflow-y:auto; }
+
+/* ── Table ── */
+.tbl { width:100%; border-collapse:collapse; }
+.tbl th { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.6px; color:var(--text3); padding:8px 12px; text-align:left; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--white); }
+.tbl td { padding:10px 12px; border-bottom:1px solid var(--border); font-size:13px; vertical-align:top; }
+.tbl tr:last-child td { border-bottom:none; }
+.tbl tr:hover td { background:var(--surface-hover); }
+
+/* ── Tags ── */
+.tag { display:inline-block; padding:2px 9px; border-radius:5px; font-size:11px; font-weight:600; }
+.tag-h { background:var(--red-light); color:var(--red); }
+.tag-m { background:var(--orange-light); color:#C77800; }
+.tag-l { background:var(--green-light); color:#248A3D; }
+.tl { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:500; color:var(--text2); }
+.tl::before { content:''; width:5px; height:5px; border-radius:50%; }
+.tl-i::before { background:var(--red); }
+.tl-s::before { background:var(--orange); }
+.tl-md::before { background:var(--accent); }
+.tl-l::before { background:var(--purple); }
+
+/* ── Insight pills ── */
+.insights { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px; margin-bottom:28px; }
+.insight { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-sm); padding:18px 20px; border-left:3px solid var(--accent); box-shadow:var(--shadow-sm); }
+.insight.warn { border-left-color:var(--red); }
+.insight-top { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+.insight-ico { font-size:16px; }
+.insight-t { font-size:13px; font-weight:600; }
+.insight-p { font-size:12px; color:var(--text2); line-height:1.55; }
+
+/* ── Branch chips ── */
+.branch-rows { display:flex; flex-direction:column; gap:5px; }
+.br-row { display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:var(--radius-xs); transition:background .15s; }
+.br-row:hover { background:var(--surface-hover); }
+.br-name { flex:1; font-size:12px; font-weight:500; }
+.br-bar { flex:2; height:8px; background:var(--surface-hover); border-radius:4px; overflow:hidden; }
+.br-fill { height:100%; border-radius:4px; transition:width .5s ease; }
+.br-ct { font-size:12px; font-weight:600; min-width:22px; text-align:right; }
+
+/* ── Loading / Error ── */
+.loading { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:50vh; gap:20px; }
+.spinner { width:32px; height:32px; border:2.5px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg)} }
+.load-text { font-size:14px; color:var(--text3); }
+.err-box { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:32px; text-align:center; max-width:420px; box-shadow:var(--shadow); }
+.err-box h3 { font-size:17px; font-weight:600; margin-bottom:8px; }
+.err-box p { font-size:13px; color:var(--text2); margin-bottom:6px; line-height:1.5; }
+
+.tbl-scroll { max-height:500px; overflow-y:auto; }
+.section-t { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.8px; color:var(--text3); margin-bottom:12px; }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+.anim { animation:fadeUp .45s ease both; }
+.d1{animation-delay:.04s}.d2{animation-delay:.08s}.d3{animation-delay:.12s}.d4{animation-delay:.16s}.d5{animation-delay:.2s}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="loading" id="loader">
+    <div class="spinner"></div>
+    <div class="load-text">Connecting to spreadsheet…</div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════
+const SHEET_ID = "1O3EHbrKR5RL38cIkIy1ciGoGu9kzelFBJZ3N-CWXqng";
+const GID = "0";
+
+// CSV Parser
+function parseCSV(t){const rows=[];let cur='',inQ=false,row=[];for(let i=0;i<t.length;i++){const c=t[i];if(inQ){if(c==='"'&&t[i+1]==='"'){cur+='"';i++}else if(c==='"')inQ=false;else cur+=c}else{if(c==='"')inQ=true;else if(c===','){row.push(cur.trim());cur=''}else if(c==='\n'||(c==='\r'&&t[i+1]==='\n')){row.push(cur.trim());cur='';if(row.some(x=>x))rows.push(row);row=[];if(c==='\r')i++}else cur+=c}}if(cur||row.length){row.push(cur.trim());if(row.some(x=>x))rows.push(row)}return rows}
+
+// ══════════════════════════════════════════════
+// PROCESS RAW SHEET → STRUCTURED DATA
+// ══════════════════════════════════════════════
+function processSheet(rows){
+  const h=rows[0].map(x=>x.toLowerCase().trim());
+  const ci={};
+  h.forEach((v,i)=>{
+    if(v.includes('tanggal'))ci.date=i;
+    if(v.includes('cabang'))ci.branch=i;
+    if(v.includes('rating'))ci.rating=i;
+    if(v.includes('sumber'))ci.source=i;
+    if(v.includes('komentar'))ci.comment=i;
+    if(v==='issue')ci.issue=i;
+    if(v.includes('inti permasalahan'))ci.summary=i;
+    if(v.includes('feedback fcm'))ci.response=i;
+  });
+  const out=[];
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i];
+    const issue=(r[ci.issue]||'').trim();
+    if(!issue)continue;
+    const comment=(r[ci.comment]||'').trim();
+    const summary=(r[ci.summary]||'').trim();
+    const text=comment+' '+summary;
+    const rat=parseInt(r[ci.rating]);
+    out.push({id:i,date:(r[ci.date]||'').trim(),branch:(r[ci.branch]||'').trim(),cat:issue,source:(r[ci.source]||'').trim(),rating:isNaN(rat)?null:rat,summary:(summary||comment).substring(0,220)||'—',sub:classifySub(issue,text)});
+  }
+  return out;
+}
+
+function classifySub(issue,t){
+  const s=t.toLowerCase();
+  if(issue.includes('Parkiran')){
+    if(/pung|liar|paksa|bayar|uang|tarif|mahal/.test(s))return'Pungli / Biaya';
+    if(/ancam|teriak|tidak ramah|kasar|marah/.test(s))return'Attendant Hostile';
+    if(/sempit|penuh|ribet|antri|susah|limit/.test(s))return'Kapasitas Terbatas';
+    return'Akses Parkir';
+  }
+  if(issue.includes('Alat')){
+    if(/bahaya|safety|berbahaya|cedera|miring|ngadat/.test(s))return'Safety Hazard';
+    if(/rusak|stuck|seret|lepas|dol|kendor/.test(s))return'Alat Rusak';
+    if(/tua|lama|second|upgrade|ganti/.test(s))return'Perlu Upgrade';
+    if(/label|tulisan|tanda/.test(s))return'Labeling';
+    return'Equipment Issue';
+  }
+  if(issue.includes('Staff')){
+    if(/bentak|marah|kasar|tidak ramah|jutek|nyolot/.test(s))return'Staff Kasar';
+    if(/permen|makan|profesional|etis/.test(s))return'Tidak Profesional';
+    return'Staff Issue';
+  }
+  if(issue.includes('Kebersihan')){
+    if(/kecoa|tikus|pest/.test(s))return'Pest / Hama';
+    if(/toilet|wc/.test(s))return'Toilet Kotor';
+    return'Kebersihan Area';
+  }
+  if(issue.includes('Membership')){
+    if(/ultra|blue|tier/.test(s))return'Perubahan Tier';
+    return'Membership Issue';
+  }
+  if(issue.includes('Request')){
+    if(/dyson|catokan|hairdryer/.test(s))return'Amenity Upgrade';
+    if(/alat|elliptical|sled|sepeda/.test(s))return'Alat Baru';
+    return'Request Lainnya';
+  }
+  // Fasilitas
+  if(/air |shower|toilet|mandi|dispenser|karofi|mampet|pipa|onsen|water|bidet/.test(s))return'Water & Plumbing';
+  if(/steam|sauna/.test(s))return'Steam & Sauna';
+  if(/ac |panas|dingin|suhu|pengap/.test(s))return'AC & Suhu';
+  if(/bocor|retak|atap/.test(s))return'Kerusakan Bangunan';
+  if(/wifi|internet/.test(s))return'WiFi';
+  if(/tissue|sabun|handuk|hairdryer|catokan|loker|gantungan|sound|jendela/.test(s))return'Amenities';
+  if(/asusila|hilang|paku|keamanan|kunci/.test(s))return'Safety & Security';
+  if(/maintenance|24 jam|musola|operasional|karyawan|duduk/.test(s))return'Operasional';
+  if(/penuh|ramai|sempit|overcrowd/.test(s))return'Overcrowding';
+  return'Fasilitas Lainnya';
+}
+
+// ══════════════════════════════════════════════
+// SMART RECOMMENDATION ENGINE
+// Generates actions dynamically from sub-issues
+// ══════════════════════════════════════════════
+const recoDB={
+  'Water & Plumbing':{a:'Emergency Water Audit',d:'Audit water heater, pipa, dispenser semua cabang terdampak. Standar: air panas 24/7. Ganti unit Karofi/Ariston yang berulang rusak.',o:'Ops + Maintenance',tl:'immediate',imp:'HIGH',diff:'MEDIUM'},
+  'Steam & Sauna':{a:'Preventive Replacement',d:'Ganti PCB + element heater proaktif. Target zero unplanned downtime. Cleaning setelah jam 22:00.',o:'Maintenance + Vendor',tl:'immediate',imp:'HIGH',diff:'MEDIUM'},
+  'AC & Suhu':{a:'HVAC Optimization',d:'Vendor audit semua AC. Gradual startup pagi. Fix chronic hot spots.',o:'Facilities + Vendor',tl:'short',imp:'MEDIUM',diff:'MEDIUM'},
+  'Amenities':{a:'Daily Checklist + Restocking',d:'Wajib cek tissue, sabun, handuk, hairdryer tiap shift start + peak. FCM sign off.',o:'Ops + FCM',tl:'immediate',imp:'MEDIUM',diff:'EASY'},
+  'Safety & Security':{a:'Safety Sprint 72 Jam',d:'Fix semua hazard (paku, kunci rusak, dll). Intensifkan patrol steam/shower malam.',o:'Security + Maintenance',tl:'immediate',imp:'HIGH',diff:'EASY'},
+  'Kerusakan Bangunan':{a:'Structural Maintenance',d:'Monthly inspection: bocor, keramik, cat. Vendor kontrak SLA max 5 hari.',o:'Facilities',tl:'short',imp:'MEDIUM',diff:'MEDIUM'},
+  'WiFi':{a:'Router Auto-Reset',d:'Auto-reset berkala. Clear cache device. Monitor uptime.',o:'IT',tl:'short',imp:'LOW',diff:'EASY'},
+  'Operasional':{a:'Maintenance Window Policy',d:'Semua maintenance di luar 06–22 kecuali darurat. Musola buka 24 jam.',o:'Ops Director',tl:'immediate',imp:'MEDIUM',diff:'EASY'},
+  'Overcrowding':{a:'Capacity Management',d:'Real-time occupancy tracker. PT scheduling. Off-peak incentives.',o:'Product + IT',tl:'long',imp:'MEDIUM',diff:'HARD'},
+  'Fasilitas Lainnya':{a:'Branch-Level Triage',d:'FCM audit per cabang, buat repair ticket dengan deadline.',o:'FCM + Ops',tl:'short',imp:'MEDIUM',diff:'MEDIUM'},
+  'Pungli / Biaya':{a:'Anti-Pungli Campaign',d:'Signage "PARKIR GRATIS MEMBER". Dokumentasi insiden. Eskalasi ke polsek.',o:'OM + Legal',tl:'immediate',imp:'HIGH',diff:'MEDIUM'},
+  'Attendant Hostile':{a:'Code of Conduct',d:'MoU dengan jukir: standar perilaku + sanksi. Training wajib security.',o:'OM + Security',tl:'immediate',imp:'HIGH',diff:'EASY'},
+  'Kapasitas Terbatas':{a:'Alternative Parking Map',d:'Mapping alternatif radius 200m. Signage. Kerjasama gedung terdekat.',o:'OM + Ops',tl:'short',imp:'MEDIUM',diff:'MEDIUM'},
+  'Akses Parkir':{a:'Access Improvement',d:'Evaluasi akses per cabang. Negosiasi building mgmt. Signage jelas.',o:'Branch OM',tl:'short',imp:'MEDIUM',diff:'MEDIUM'},
+  'Safety Hazard':{a:'Immediate Equipment Pull',d:'Cabut alat berbahaya SEKARANG sampai fixed. Zero tolerance.',o:'Maintenance + OM',tl:'immediate',imp:'HIGH',diff:'EASY'},
+  'Alat Rusak':{a:'Rapid Repair Protocol',d:'Target 24–48 jam. Spare parts fast-moving di gudang regional.',o:'Maintenance',tl:'immediate',imp:'HIGH',diff:'MEDIUM'},
+  'Perlu Upgrade':{a:'Fleet Refresh Roadmap',d:'Katalog umur alat. Budget replacement. Prioritas cabang dengan keluhan.',o:'Procurement + Finance',tl:'short',imp:'HIGH',diff:'HARD'},
+  'Labeling':{a:'Plate Holder Signage',d:'Label berat di plate holder. Template standar semua cabang.',o:'Ops + Design',tl:'immediate',imp:'LOW',diff:'EASY'},
+  'Equipment Issue':{a:'Preventive Schedule',d:'Lubrikasi, cek kabel, kencangkan baut bulanan. Log maintenance.',o:'Maintenance',tl:'short',imp:'MEDIUM',diff:'EASY'},
+  'Staff Kasar':{a:'Zero Tolerance + CnC',d:'Counseling langsung. Repeat = sanksi berat. Dokumentasi tiap insiden.',o:'HR + OM',tl:'immediate',imp:'HIGH',diff:'EASY'},
+  'Tidak Profesional':{a:'Service Excellence Training',d:'SOP greeting, produk knowledge, grooming. Role-play. Mystery shopper.',o:'HR + Training',tl:'immediate',imp:'HIGH',diff:'EASY'},
+  'Staff Issue':{a:'Staff Accountability',d:'KPI keramahan masuk review. Personal issue boundary policy.',o:'HR',tl:'short',imp:'MEDIUM',diff:'MEDIUM'},
+  'Pest / Hama':{a:'Pest Control Audit',d:'Review kontrak vendor. Inspeksi celah semua cabang. Jadwal rutin.',o:'Facilities + Vendor',tl:'short',imp:'MEDIUM',diff:'EASY'},
+  'Toilet Kotor':{a:'Intensified Cleaning',d:'Setiap 1 jam peak, 2 jam off-peak. Checklist + signature.',o:'Ops + OB',tl:'immediate',imp:'HIGH',diff:'EASY'},
+  'Kebersihan Area':{a:'Cleaning SOP Review',d:'Audit jadwal. Standarisasi produk. Surprise audit.',o:'Ops + QA',tl:'short',imp:'MEDIUM',diff:'EASY'},
+  'Perubahan Tier':{a:'Official Statement ASAP',d:'Klarifikasi resmi: apa berubah, apa TIDAK berubah. Draft Legal + Marketing.',o:'Marketing + Legal',tl:'immediate',imp:'HIGH',diff:'EASY'},
+  'Membership Issue':{a:'Proactive Communication',d:'Klarifikasi kebijakan ke member terdampak. Transparansi.',o:'CX + Marketing',tl:'immediate',imp:'HIGH',diff:'EASY'},
+  'Amenity Upgrade':{a:'Standardisasi per Tier',d:'Standarisasi amenity Blue vs Ultra. Komunikasikan ke member.',o:'Procurement',tl:'short',imp:'LOW',diff:'MEDIUM'},
+  'Alat Baru':{a:'Request Pipeline',d:'Formal request → approval → timeline → komunikasi balik ke member.',o:'Procurement + FCM',tl:'medium',imp:'MEDIUM',diff:'MEDIUM'},
+  'Request Lainnya':{a:'Suggestion Channel',d:'Channel formal request member. Review bulanan.',o:'CX + FCM',tl:'short',imp:'LOW',diff:'EASY'},
+};
+
+function genPlans(data,filter){
+  const fil=filter==='Semua'?data:data.filter(c=>c.cat===filter);
+  const sc={};fil.forEach(c=>{sc[c.sub]=(sc[c.sub]||0)+1});
+  const plans=Object.entries(sc).sort((a,b)=>b[1]-a[1]).map(([sub,count])=>{
+    const r=recoDB[sub]||{a:'Investigate',d:`${count} keluhan "${sub}". Investigasi per cabang.`,o:'FCM',tl:'short',imp:'MEDIUM',diff:'MEDIUM'};
+    return{sub,count,...r};
+  });
+  const io={HIGH:0,MEDIUM:1,LOW:2};
+  plans.sort((a,b)=>(io[a.imp]||1)-(io[b.imp]||1)||b.count-a.count);
+  return plans;
+}
+
+function genMatrix(plans){
+  const m={hE:[],hH:[],lE:[],lH:[]};
+  plans.forEach(p=>{
+    const hi=p.imp==='HIGH'||(p.imp==='MEDIUM'&&p.count>=3);
+    const hard=p.diff==='HARD';
+    const k=(hi?'h':'l')+(hard?'H':'E');
+    m[k].push({n:p.sub,c:p.count});
+  });
+  return m;
+}
+
+function genInsights(data,filter){
+  const fil=filter==='Semua'?data:data.filter(c=>c.cat===filter);
+  const n=fil.length;if(!n)return[];
+  const ins=[];
+  const gr=fil.filter(c=>c.source==='Google Review');
+  const s1=fil.filter(c=>c.rating===1);
+  if(gr.length)ins.push({i:'⭐',t:`${gr.length} Google Reviews (${s1.length} bintang 1)`,p:`${Math.round(gr.length/n*100)}% keluhan publik & permanen. Visible ke setiap calon member.`,w:true});
+  const bc={};fil.forEach(c=>{bc[c.branch]=(bc[c.branch]||0)+1});
+  const hot=Object.entries(bc).filter(e=>e[1]>=4).sort((a,b)=>b[1]-a[1]);
+  if(hot.length)ins.push({i:'🔁',t:'Repeat Offender Branches',p:hot.map(b=>`${b[0]} (${b[1]})`).join(', ')+' — pola sistemik, bukan insiden.',w:true});
+  const sc={};fil.forEach(c=>{sc[c.sub]=(sc[c.sub]||0)+1});
+  const top=Object.entries(sc).sort((a,b)=>b[1]-a[1]);
+  if(top.length&&top[0][1]>=3)ins.push({i:'📊',t:`"${top[0][0]}" mendominasi`,p:`${top[0][1]} dari ${n} (${Math.round(top[0][1]/n*100)}%). Area dengan ROI perbaikan tertinggi.`,w:false});
+  const wc=fil.filter(c=>c.sub==='Water & Plumbing').length;
+  if(wc>=4)ins.push({i:'🚿',t:`Water Crisis (${wc} keluhan)`,p:'Air mati, toilet rusak, shower dingin. Basic hygiene failure = churn trigger langsung.',w:true});
+  const sf=fil.filter(c=>/safety|hazard|paku|bahaya|asusila|ancam/i.test(c.sub+' '+c.summary)).length;
+  if(sf)ins.push({i:'⚠️',t:`${sf} Safety Issue`,p:'Hazard fisik + keamanan member. Liability risk — tangani segera.',w:true});
+  const src={};fil.forEach(c=>{src[c.source]=(src[c.source]||0)+1});
+  const ts=Object.entries(src).sort((a,b)=>b[1]-a[1])[0];
+  if(ts)ins.push({i:'📡',t:`Channel utama: ${ts[0]}`,p:`${ts[1]} keluhan (${Math.round(ts[1]/n*100)}%). Monitor real-time channel ini.`,w:false});
+  return ins;
+}
+
+// ══════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════
+let DATA=[], FILTER='Semua', LAST=null;
+const COLORS=['#0071E3','#34C759','#FF9500','#AF52DE','#FF3B30','#5AC8FA','#FF2D55','#64D2FF','#FFD60A','#30D158'];
+const srcClr={'Quick Response':'#0071E3','Google Review':'#FF3B30','WhatsApp':'#34C759','Instagram':'#AF52DE','In-Apps':'#FF9500','Panggilan':'#8E8E93'};
+
+function fil(){return FILTER==='Semua'?DATA:DATA.filter(c=>c.cat===FILTER)}
+
+function render(){
+  if(!DATA.length)return;
+  const f=fil(), n=f.length, cats=[...new Set(DATA.map(c=>c.cat))];
+  const cc={};DATA.forEach(c=>{cc[c.cat]=(cc[c.cat]||0)+1});
+  const dates=DATA.map(c=>c.date).filter(Boolean);
+  const range=dates.length?dates[0]+' – '+dates[dates.length-1]:'—';
+  const gr=f.filter(c=>c.source==='Google Review');
+  const s1=f.filter(c=>c.rating===1);
+  const br=new Set(f.map(c=>c.branch));
+  const sc={};f.forEach(c=>{sc[c.sub]=(sc[c.sub]||0)+1});
+  const topS=Object.entries(sc).sort((a,b)=>b[1]-a[1]);
+  const days=new Set(f.map(c=>c.date)).size||1;
+
+  document.getElementById('app').innerHTML=`
+  <!-- HEADER -->
+  <div class="header anim">
+    <div class="header-top">
+      <div class="logo"><span>FTL GYM</span> Complaint Intelligence</div>
+      <div class="header-actions">
+        <div class="sync-pill"><div class="sync-dot"></div>Live · Google Sheets</div>
+        ${LAST?`<div class="sync-pill" style="border:none;font-size:10px;">${LAST.toLocaleTimeString()}</div>`:''}
+        <button class="refresh-btn" onclick="load()">↻ Refresh</button>
+      </div>
+    </div>
+    <div class="title">Complaint Analysis</div>
+    <div class="subtitle">${range} · ${DATA.length} total complaints across ${new Set(DATA.map(c=>c.branch)).size} branches</div>
+  </div>
+
+  <!-- SLICER -->
+  <div class="slicer anim d1" id="slicer">
+    <button class="slicer-btn ${FILTER==='Semua'?'active':''}" onclick="sf('Semua')">All<span class="ct">${DATA.length}</span></button>
+    ${cats.map(c=>`<button class="slicer-btn ${FILTER===c?'active':''}" onclick="sf('${c.replace(/'/g,"\\'")}')">${c.replace('Komplain ','').replace('Request ','Req ')}<span class="ct">${cc[c]||0}</span></button>`).join('')}
+  </div>
+
+  <!-- KPI -->
+  <div class="kpi-strip anim d2">
+    <div class="kpi"><div class="kpi-label">Complaints</div><div class="kpi-val">${n}</div><div class="kpi-note">${FILTER==='Semua'?'All categories':FILTER}</div></div>
+    <div class="kpi"><div class="kpi-label">Google Reviews</div><div class="kpi-val">${gr.length}</div><div class="kpi-note">${s1.length} rated 1-star</div></div>
+    <div class="kpi"><div class="kpi-label">Branches</div><div class="kpi-val">${br.size}</div><div class="kpi-note">locations affected</div></div>
+    <div class="kpi"><div class="kpi-label">Top Issue</div><div class="kpi-val" style="font-size:24px">${topS[0]?topS[0][0]:'—'}</div><div class="kpi-note">${topS[0]?topS[0][1]+' complaints':'—'}</div></div>
+    <div class="kpi"><div class="kpi-label">Rate</div><div class="kpi-val">${(n/days).toFixed(1)}</div><div class="kpi-note">per day (${days} days)</div></div>
+  </div>
+
+  <!-- CHARTS ROW -->
+  <div class="grid-2 anim d3">
+    <div class="card">
+      <div class="card-head"><span class="card-t">Sub-Issues</span><span class="card-sub">click to drill down</span></div>
+      <div class="card-body"><div class="hbar" id="hbar"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-t">Priority Matrix</span><span class="card-sub">Impact × Difficulty</span></div>
+      <div class="card-body"><div class="matrix" id="mtx"></div></div>
+    </div>
+  </div>
+
+  <!-- DRAWER -->
+  <div class="drawer" id="drawer">
+    <div class="drawer-head"><span class="card-t" id="drT"></span><button class="drawer-close" onclick="document.getElementById('drawer').className='drawer'">✕</button></div>
+    <div class="drawer-body" id="drB"></div>
+  </div>
+
+  <!-- INSIGHTS -->
+  <div class="insights anim d4" id="ins"></div>
+
+  <!-- ACTION PLAN -->
+  <div class="card anim d4" style="margin-bottom:24px">
+    <div class="card-head"><span class="card-t">Action Plan & Timeline</span><span class="card-sub" id="aCt"></span></div>
+    <div class="tbl-scroll"><table class="tbl"><thead><tr><th>#</th><th>Issue</th><th>Count</th><th>Impact</th><th>Action</th><th>Detail</th><th>Owner</th><th>Timeline</th></tr></thead><tbody id="aBody"></tbody></table></div>
+  </div>
+
+  <!-- BOTTOM ROW -->
+  <div class="grid-2 anim d5">
+    <div class="card">
+      <div class="card-head"><span class="card-t">Branch Watchlist</span></div>
+      <div class="card-body"><div class="branch-rows" id="brL"></div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-t">Sources</span></div>
+      <div class="card-body"><div class="hbar" id="srcC"></div></div>
+    </div>
+  </div>`;
+
+  // ── Sub-issue bars ──
+  const mx=topS[0]?topS[0][1]:1;
+  document.getElementById('hbar').innerHTML=topS.slice(0,10).map(([nm,ct],i)=>`
+    <div class="hbar-row" onclick="drill('${nm.replace(/'/g,"\\'")}')">
+      <div class="hbar-name" title="${nm}">${nm}</div>
+      <div class="hbar-track"><div class="hbar-fill" style="width:${Math.max(ct/mx*100,8)}%;background:${COLORS[i%COLORS.length]}"></div></div>
+      <div class="hbar-ct">${ct}</div>
+    </div>`).join('');
+
+  // ── Matrix ──
+  const plans=genPlans(DATA,FILTER);
+  const mat=genMatrix(plans);
+  const qs=[
+    {k:'hE',t:'High Impact · Easy',bg:'var(--red-light)',dot:'var(--red)',desc:'Top Priority'},
+    {k:'hH',t:'High Impact · Hard',bg:'var(--orange-light)',dot:'var(--orange)',desc:'Strategic'},
+    {k:'lE',t:'Low Impact · Easy',bg:'var(--green-light)',dot:'var(--green)',desc:'Quick Win'},
+    {k:'lH',t:'Low Impact · Hard',bg:'var(--purple-light)',dot:'var(--purple)',desc:'Deprioritize'},
+  ];
+  document.getElementById('mtx').innerHTML=qs.map(q=>`
+    <div class="matrix-q" style="background:${q.bg}">
+      <h5 style="color:${q.dot}">${q.desc}</h5>
+      <div class="mq-items">
+        ${(mat[q.k]||[]).length?mat[q.k].map(it=>`<div class="mq-item"><span><span class="mq-dot" style="background:${q.dot}"></span>${it.n}</span><span>${it.c}</span></div>`).join(''):`<div class="mq-empty">—</div>`}
+      </div>
+    </div>`).join('');
+
+  // ── Insights ──
+  const insList=genInsights(DATA,FILTER);
+  document.getElementById('ins').innerHTML=insList.map(x=>`
+    <div class="insight ${x.w?'warn':''}"><div class="insight-top"><span class="insight-ico">${x.i}</span><span class="insight-t">${x.t}</span></div><div class="insight-p">${x.p}</div></div>`).join('');
+
+  // ── Action Plan ──
+  const tlM={immediate:{l:'0–30 hari',c:'tl-i'},short:{l:'1–3 bulan',c:'tl-s'},medium:{l:'3–6 bulan',c:'tl-md'},long:{l:'6+ bulan',c:'tl-l'}};
+  const impM={HIGH:'tag-h',MEDIUM:'tag-m',LOW:'tag-l'};
+  document.getElementById('aCt').textContent=plans.length+' actions';
+  document.getElementById('aBody').innerHTML=plans.map((p,i)=>{
+    const tl=tlM[p.tl]||tlM.short;
+    return`<tr><td style="font-weight:600;color:var(--text3)">${i+1}</td><td style="font-weight:600;white-space:nowrap">${p.sub}</td><td style="text-align:center;font-weight:600">${p.count}</td><td><span class="tag ${impM[p.imp]||'tag-m'}">${p.imp}</span></td><td style="font-weight:500">${p.a}</td><td style="color:var(--text2);max-width:300px;font-size:12px">${p.d}</td><td style="white-space:nowrap;font-size:12px">${p.o}</td><td><span class="tl ${tl.c}">${tl.l}</span></td></tr>`;
+  }).join('');
+
+  // ── Branch watchlist ──
+  const bm={};f.forEach(c=>{bm[c.branch]=(bm[c.branch]||0)+1});
+  const sB=Object.entries(bm).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  const bMx=sB[0]?sB[0][1]:1;
+  document.getElementById('brL').innerHTML=sB.map(([nm,ct])=>{
+    const clr=ct>=6?'var(--red)':ct>=4?'var(--orange)':ct>=2?'var(--accent)':'var(--green)';
+    return`<div class="br-row"><div class="br-name">${nm}</div><div class="br-bar"><div class="br-fill" style="width:${ct/bMx*100}%;background:${clr}"></div></div><div class="br-ct" style="color:${clr}">${ct}</div></div>`;
+  }).join('');
+
+  // ── Sources ──
+  const sm={};f.forEach(c=>{sm[c.source]=(sm[c.source]||0)+1});
+  const sS=Object.entries(sm).sort((a,b)=>b[1]-a[1]);
+  const sMx=sS[0]?sS[0][1]:1;
+  document.getElementById('srcC').innerHTML=sS.map(([nm,ct])=>`
+    <div class="hbar-row">
+      <div class="hbar-name">${nm}</div>
+      <div class="hbar-track"><div class="hbar-fill" style="width:${Math.max(ct/sMx*100,10)}%;background:${srcClr[nm]||'#8E8E93'}"></div></div>
+      <div class="hbar-ct">${ct}</div>
+    </div>`).join('');
+}
+
+// ── Drill-down ──
+function drill(sub){
+  const f=fil().filter(c=>c.sub===sub);
+  const d=document.getElementById('drawer');
+  d.className='drawer open';
+  document.getElementById('drT').textContent=sub+' — '+f.length+' complaints';
+  document.getElementById('drB').innerHTML=`<table class="tbl"><thead><tr><th>Date</th><th>Branch</th><th>Summary</th><th>Rating</th><th>Source</th></tr></thead><tbody>${f.map(c=>`<tr><td style="white-space:nowrap">${c.date}</td><td style="white-space:nowrap">${c.branch}</td><td style="font-size:12px;color:var(--text2)">${c.summary}</td><td>${c.rating?'⭐'+c.rating:'—'}</td><td style="white-space:nowrap">${c.source}</td></tr>`).join('')}</tbody></table>`;
+  d.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function sf(c){FILTER=c;render();window.scrollTo({top:0,behavior:'smooth'})}
+
+// ══════════════════════════════════════════════
+// MULTI-METHOD DATA LOADER
+// Tries: 1) JSONP  2) CSV fetch  3) CSV via gviz
+// All fail → shows manual paste option
+// ══════════════════════════════════════════════
+
+// Method 1: JSONP via Google Visualization API
+function tryJSONP(){
+  return new Promise((resolve,reject)=>{
+    const cb='__gc'+Date.now();
+    const timeout=setTimeout(()=>{reject(new Error('JSONP timeout'));delete window[cb]},8000);
+    window[cb]=function(resp){
+      clearTimeout(timeout);
+      delete window[cb];
+      try{
+        if(!resp||!resp.table)throw new Error('No table');
+        const headers=resp.table.cols.map(c=>(c.label||'').trim());
+        const dataRows=resp.table.rows.map(r=>r.c.map(cell=>{
+          if(!cell||cell.v==null)return'';
+          return String(cell.f||cell.v);
+        }));
+        // Check if headers are real or need first row
+        let h=headers,d=dataRows;
+        if(!h.some(x=>/tanggal|cabang|issue|sumber/i.test(x))&&d.length){
+          if(d[0].some(x=>/tanggal|cabang|issue|sumber/i.test(x))){h=d[0];d=d.slice(1)}
+        }
+        resolve([h,...d]);
+      }catch(e){reject(e)}
+    };
+    const s=document.createElement('script');
+    s.src=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cb}&gid=${GID}`;
+    s.onerror=()=>{clearTimeout(timeout);reject(new Error('Script load failed'))};
+    document.head.appendChild(s);
+  });
+}
+
+// Method 2: Direct CSV fetch (works if published or CORS allows)
+async function tryCSVFetch(url){
+  const r=await fetch(url,{redirect:'follow'});
+  if(!r.ok)throw new Error('HTTP '+r.status);
+  const t=await r.text();
+  if(t.includes('<!DOCTYPE')||t.includes('<html'))throw new Error('Got HTML not CSV');
+  const rows=parseCSV(t);
+  if(rows.length<2)throw new Error('Empty');
+  return rows;
+}
+
+// Master loader: try all methods
+async function load(){
+  const loader=document.getElementById('loader');
+  if(loader)loader.innerHTML='<div class="spinner"></div><div class="load-text">Connecting to Google Sheets…</div>';
+  
+  let rows=null;
+  
+  // Try Method 1: JSONP
+  try{
+    rows=await tryJSONP();
+    console.log('✅ Loaded via JSONP');
+  }catch(e){
+    console.log('JSONP failed:',e.message);
+  }
+  
+  // Try Method 2: CSV via gviz endpoint
+  if(!rows){
+    try{
+      rows=await tryCSVFetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`);
+      console.log('✅ Loaded via gviz CSV');
+    }catch(e){
+      console.log('gviz CSV failed:',e.message);
+    }
+  }
+  
+  // Try Method 3: Published CSV export
+  if(!rows){
+    try{
+      rows=await tryCSVFetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`);
+      console.log('✅ Loaded via export CSV');
+    }catch(e){
+      console.log('Export CSV failed:',e.message);
+    }
+  }
+
+  // Try Method 4: pub CSV 
+  if(!rows){
+    try{
+      rows=await tryCSVFetch(`https://docs.google.com/spreadsheets/d/e/2PACX-1vS_RXkpu9Id8-8S1GBpqcZP0AY7CKKBVa8N-Iv16o-WiOfecw40ufG3o7b4FTFa_23QABCTqEmMubFg/pub?output=csv`);
+      console.log('✅ Loaded via pub CSV');
+    }catch(e){
+      console.log('Pub CSV failed:',e.message);
+    }
+  }
+  
+  if(rows&&rows.length>=2){
+    DATA=processSheet(rows);
+    LAST=new Date();
+    if(DATA.length){render();return;}
+  }
+  
+  // ALL methods failed — show paste fallback
+  showPasteFallback();
+}
+
+function showPasteFallback(){
+  document.getElementById('app').innerHTML=`
+    <div class="header anim"><div class="header-top"><div class="logo"><span>FTL GYM</span> Complaint Intelligence</div></div><div class="title">Complaint Analysis</div></div>
+    <div style="max-width:560px;margin:40px auto;">
+      <div class="err-box" style="text-align:left;">
+        <h3 style="margin-bottom:12px;">📋 Paste CSV Data</h3>
+        <p style="margin-bottom:16px;">Browser tidak bisa konek langsung ke Google Sheets. Tapi gampang — ikuti langkah ini:</p>
+        <ol style="font-size:13px;color:var(--text2);line-height:1.8;padding-left:20px;margin-bottom:16px;">
+          <li>Buka spreadsheet di tab lain</li>
+          <li>Klik <strong>File → Download → Comma-separated values (.csv)</strong></li>
+          <li>Buka file CSV dengan Notepad/TextEdit</li>
+          <li>Select All (Ctrl+A) → Copy (Ctrl+C)</li>
+          <li>Paste di box bawah ini</li>
+        </ol>
+        <textarea id="csvInput" placeholder="Paste CSV data disini..." style="width:100%;height:160px;padding:12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-family:monospace;font-size:12px;resize:vertical;background:var(--bg);color:var(--text);"></textarea>
+        <button onclick="loadFromPaste()" style="margin-top:12px;background:var(--text);color:white;border:none;border-radius:var(--radius-sm);padding:10px 24px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;width:100%;">Load Dashboard</button>
+        <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+          <p style="font-size:12px;color:var(--text3);margin-bottom:8px;"><strong>Atau upload file CSV:</strong></p>
+          <input type="file" accept=".csv" onchange="loadFromFile(event)" style="font-size:12px;color:var(--text2);"/>
+        </div>
+      </div>
+    </div>`;
+}
+
+function loadFromPaste(){
+  const t=document.getElementById('csvInput').value.trim();
+  if(!t){alert('Paste data CSV dulu');return;}
+  const rows=parseCSV(t);
+  if(rows.length<2){alert('Data tidak valid — pastikan copy dari file CSV');return;}
+  DATA=processSheet(rows);LAST=new Date();
+  if(DATA.length){render()}else{alert('Tidak ditemukan kolom "Issue" di data')}
+}
+
+function loadFromFile(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    const rows=parseCSV(ev.target.result);
+    if(rows.length<2){alert('File CSV kosong atau tidak valid');return;}
+    DATA=processSheet(rows);LAST=new Date();
+    if(DATA.length){render()}else{alert('Tidak ditemukan kolom "Issue" di data')}
+  };
+  reader.readAsText(file);
+}
+
+load();
+</script>
+</body>
+</html>
